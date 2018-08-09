@@ -1,0 +1,14 @@
+# Top-most EditorConfig file
+root = true
+
+# Default configuration for all files
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = true
+
+# File types with a lot of nested indent
+[*.yml]
+indent_size = 2

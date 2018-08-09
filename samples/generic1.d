@@ -13,4 +13,4 @@ struct S
     double d;
 }
 
-mixin("void foo_generated ( size_t x );");
+mixin("S foo_generated ( size_t x );");

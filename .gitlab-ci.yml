@@ -1,0 +1,15 @@
+image: mstrasuns/ubuntu-dlang:2.081
+
+stages:
+  - test
+
+unittest:
+  stage: test
+  script:
+    - ls -lah
+    - dub test
+
+sample_run:
+  stage: test
+  script:
+    - dub run -- samples/generic1.d

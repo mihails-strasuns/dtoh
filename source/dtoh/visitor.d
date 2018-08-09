@@ -1,29 +1,9 @@
-module app;
-
-import dmd.frontend;
-
-void main ( string[] args )
-{    
-    import dmd.globals : global;
-
-    initDMD();
-    auto ipaths = findImportPaths();
-    foreach (ipath; ipaths)
-        addImport(ipath);
-
-    auto mod = parseModule(args[1]);
-    mod.fullSemantic();
-
-    auto visitor = new Generator;
-    mod.accept(visitor);
-}
+module dtoh.visitor;
 
 import dmd.visitor;
-import dmd.astcodegen;
-import dmd.statement;
 
 ///
-private extern (C++) final class Generator : Visitor
+public extern (C++) class DeclarationVisitor : Visitor
 {
     import dmd.dmodule;
     import dmd.dsymbol;
@@ -35,8 +15,6 @@ private extern (C++) final class Generator : Visitor
     import dmd.dtemplate;
     import dmd.denum;
     import dmd.arraytypes;
-
-public:  
 
     alias visit = Visitor.visit;
 
@@ -107,17 +85,6 @@ public:
         }
     }
 
-    override void visit(FuncDeclaration d)
-    {
-        import dmd.globals : LINK;
-        
-        if (d.linkage != LINK.c)
-            return;
-
-        import std.stdio;
-        writeln(parse(d.toChars()));
-    }
-
     override void visit(TemplateDeclaration d)
     {
         for (size_t i = 0; i < d.members.dim; i++)
@@ -163,11 +130,4 @@ public:
     override void visit(TemplateMixin d)
     {
     }
-}
-
-private string parse ( in char* s )
-{
-    import core.stdc.string : strlen;
-    auto len = strlen(s);
-    return s[0 .. len].idup;
 }
