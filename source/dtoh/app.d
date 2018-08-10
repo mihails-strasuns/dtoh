@@ -16,45 +16,33 @@ void main ( string[] args )
 
     auto visitor = new CDeclVisitor;
     mod.accept(visitor);
+
+    import std.stdio;
+    writeln(visitor.render());
 }
 
 import dtoh.visitor;
-import dtoh.typeconv;
+import dtoh.converter;
 
 private extern (C++) class CDeclVisitor : DeclarationVisitor
 {
     import dmd.func : FuncDeclaration;
+    import dmd.dstruct : StructDeclaration;
 
     alias visit = DeclarationVisitor.visit;
+
+    public string render ( )
+    {
+        return this.converter.render();
+    }
 
     override void visit(FuncDeclaration d)
     {
         import dmd.globals : LINK;
-        import dmd.mtype : TypeFunction;
-        import std.algorithm : map;
-        import std.range : join;    
 
-        if (d.linkage != LINK.c)
-            return;
-
-        string params;
-
-        auto t = cast(TypeFunction) d.type;
-
-        if (t.parameters !is null)
-        {           
-            params = (*t.parameters)[]
-                .map!(param => convert(param.type, param.ident))
-                .join(", ");
-        }
-
-        import std.stdio;
-
-        writefln(
-            "%s %s(%s);",
-            convert(t.next),
-            d.ident.toString(),
-            params            
-        );
+        if (d.linkage == LINK.c)
+            this.converter.convertDeclaration(d.type, d.ident);
     }
+
+    private Converter converter;
 }
