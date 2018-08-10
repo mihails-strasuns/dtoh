@@ -254,14 +254,25 @@ struct Converter
         import std.range;
         import std.algorithm : map;
 
+        auto forward_decls = this.output.structs.keys.map!((key) {
+            auto name = (cast(TypeStruct) key).sym.ident.toString().idup;
+            return "struct " ~ name ~ ";";
+        }).array();
+
         return only(
             [ "#include <stdint.h>" ],
+            [ "// Used enum definitions:" ],
             this.output.enums.values,
+            [ "// Struct forward declaration to resolve cycles:" ],
+            forward_decls,
+            [ "// Function pointer types:" ],
+            this.output.fptr_typedef_declarations,
+            [ "// Used struct definitions:" ],
             this.output.structs.values,
-            this.output.fptr_typedefs.values,
+            [ "// Variable and function declarations:" ],
             this.output.declarations
         ).map!(x => x.join("\n"))
-         .join("\n");
+         .join("\n\n");
     }
 
     private struct Output

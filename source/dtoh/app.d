@@ -1,10 +1,9 @@
 module dtoh.app;
 
-import dmd.frontend;
-
 void main ( string[] args )
 {    
     import dmd.globals : global;
+    import dmd.frontend;
 
     initDMD();
     auto ipaths = findImportPaths();
