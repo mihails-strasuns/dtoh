@@ -8,8 +8,6 @@ import dmd.declaration;
 import dmd.init;
 import dmd.expression;
 
-import std.exception : enforce;
-
 import dtoh.exceptions;
 
 struct Converter
@@ -35,7 +33,7 @@ struct Converter
         if (t.parameters !is null)
         {
             params = (*t.parameters)[]
-                .map!(param => convert(param.type))
+                .map!(param => convert(param.type, param.ident))
                 .join(", ");
         }
 
@@ -66,11 +64,8 @@ struct Converter
         if (pt in this.output.structs)
             return;
 
-        enforce!InformationLoss(
-            t.sym.isPOD(),
-            "Using non-POD struct as extern(C) can resul in hard to debug" ~
-                " difference in behaviour"
-        );
+        if (!t.sym.isPOD())
+            throw new NonPOD(t);
 
         import std.algorithm : map;
         import std.range : join;
@@ -78,10 +73,8 @@ struct Converter
 
         string fieldToString (VarDeclaration field)
         {
-            enforce!InformationLoss(
-                field._init is null,
-                "C does not support explicit field initializers in structs"
-            );
+            if (field._init !is null)
+                throw new StructFieldInit(t);
 
             return format(
                 "    %s %s;",
@@ -122,7 +115,8 @@ struct Converter
             import std.string;
 
             auto member = sym.isEnumMember();
-            enforce(member !is null);
+            if (member is null)
+                throw new Oops(t);
 
             return format(
                 "    %s_%s = %s",
@@ -149,7 +143,7 @@ struct Converter
         );
     }
 
-    private string convert (Type t)
+    private string convert (Type t, Identifier name = null)
     {
         if (auto tb = t.isTypeBasic())
             return this.convert(tb);
@@ -159,14 +153,14 @@ struct Converter
             case Tpointer:
                 return this.convert(cast(TypePointer) t);
             case Tfunction:
-                return this.convert(cast(TypeFunction) t);
+                return this.convert(cast(TypeFunction) t, name);
             case Tstruct:
                 return this.convert(cast(TypeStruct) t);
             case Tenum:
                 return this.convert(cast(TypeEnum) t);
 
             default:
-                throw new NotSupported(t);
+                throw new BadTypeKind(t);
         }
     }
 
@@ -203,7 +197,7 @@ struct Converter
             case Tdchar:
             case Tint128:
             case Tuns128:
-                throw new NotSupported(t);
+                throw new BadTypeKind(t);
 
             default:
                 assert(false);
@@ -218,7 +212,7 @@ struct Converter
             return convert(t.next) ~ "*";
     }
 
-    private string convert (TypeFunction t)
+    private string convert (TypeFunction t, Identifier name)
     {
         import std.algorithm : map;
         import std.range : join;
@@ -228,20 +222,23 @@ struct Converter
         if (exists_typedef ! is null)
             return *exists_typedef;
 
+        if (name is null)
+            throw new UnnamedFunction(t);
+
         string ret = convert(t.next);
         string params;
 
         if (t.parameters !is null)
         {
             params = (*t.parameters)[]
-                .map!(param => convert(param.type))
+                .map!(param => convert(param.type, param.ident))
                 .join(", ");
         }
 
         return format(
             "%s (*%s)(%s)",
             ret,
-            "foo", // TODO: generate random name or error?
+            name.toString(),
             params
         );
     }

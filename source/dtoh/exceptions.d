@@ -1,33 +1,104 @@
 module dtoh.exceptions;
 
-alias WarningHandler = void delegate(string);
-
 public abstract class ConversionException : Exception
 {
-    import std.exception : basicExceptionCtors;
-    mixin basicExceptionCtors;
-}
-
-public class NotSupported : ConversionException
-{
     import dmd.mtype : Type;
-    import core.stdc.string : strlen;
-    import std.format;
 
-    this (Type type, string file = __FILE__, int line = __LINE__)
+    this (Type type, string msg, string file = __FILE__, int line = __LINE__)
     {
-        char* pretty = type.toPrettyChars(true);
-        size_t pretty_ln = strlen(pretty);
+        import std.string : format, fromStringz;
+
         super(
-            format("Type '%s' of kind '%s' can't be represented in C",
-                pretty[0 .. pretty_ln], type.kind()),
-            file, line
+            format("[%s] %s", fromStringz(type.toPrettyChars(true)), msg),
+            file,
+            line
         );
     }
 }
 
-public class InformationLoss : ConversionException
+public class BadTypeKind : ConversionException
 {
-    import std.exception : basicExceptionCtors;
-    mixin basicExceptionCtors;
+    import dmd.mtype : Type;
+
+    this (Type type, string file = __FILE__, int line = __LINE__)
+    {
+        import std.format;
+
+        super(
+            type,
+            format("Type of kind '%s' can't be represented in C", type.kind()),
+            file,
+            line
+        );
+    }
+}
+
+public class NonPOD : ConversionException
+{
+    import dmd.mtype : Type;
+
+    this (Type type, string file = __FILE__, int line = __LINE__)
+    {
+        import std.format;
+
+        super(
+            type,
+            "Using non-POD struct as extern(C) is likely to result in hard to debug" ~
+                " differences in behaviour",
+            file,
+            line
+        );
+    }
+}
+
+public class StructFieldInit : ConversionException
+{
+    import dmd.mtype : Type;
+
+    this (Type type, string file = __FILE__, int line = __LINE__)
+    {
+        import std.format;
+
+        super(
+            type,
+           "C does not support explicit field initializers in structs",
+            file,
+            line
+        );
+    }
+}
+
+public class UnnamedFunction : ConversionException
+{
+    import dmd.mtype : Type;
+
+    this (Type type, string file = __FILE__, int line = __LINE__)
+    {
+        import std.format;
+
+        super(
+            type,
+            "C does not support unnamed function pointers, "
+                ~ "consider using alias or named parameter",
+            file,
+            line
+        );
+    }
+}
+
+public class Oops : ConversionException
+{
+    import dmd.mtype : Type;
+
+    this (Type type, string file = __FILE__, int line = __LINE__)
+    {
+        import std.format;
+
+        super(
+            type,
+           "Converter has encountered something that doesn't make sense",
+            file,
+            line
+        );
+    }
 }
