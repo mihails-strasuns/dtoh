@@ -27,7 +27,7 @@ import dtoh.converter;
 private extern (C++) class CDeclVisitor : DeclarationVisitor
 {
     import dmd.func : FuncDeclaration;
-    import dmd.declaration : VarDeclaration;
+    import dmd.declaration : AliasDeclaration, VarDeclaration;
     import dmd.dstruct : StructDeclaration;
 
     alias visit = DeclarationVisitor.visit;
@@ -59,6 +59,34 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
         {
             enforce(d.storage_class & STC.gshared);
             this.converter.convertDeclaration(d.type, d.ident);
+        }
+    }
+
+    override void visit(AliasDeclaration d)
+    {
+        import dmd.globals : LINK;
+        import dmd.mtype : ENUMTY, TypeFunction, TypePointer, Type;
+
+        TypeFunction isFunctionPointer (Type t)
+        {
+            if (t.ty == ENUMTY.Tfunction)
+                return t.toTypeFunction();
+            if (t.ty == ENUMTY.Tpointer)
+            {
+                auto tp = cast(TypePointer) t;
+                if (tp.next.ty == ENUMTY.Tfunction)
+                    return tp.next.toTypeFunction();
+            }
+
+            return null;
+        }
+
+        if (auto tf = isFunctionPointer(d.getType()))
+        {  
+            if (tf.linkage == LINK.c)
+            {
+                this.converter.convertDeclaration(tf, d.ident, true);
+            }
         }
     }
 

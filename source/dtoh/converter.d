@@ -23,7 +23,8 @@ struct Converter
             format("%s %s;", this.convert(t), ident.toString());
     }
 
-    public void convertDeclaration (TypeFunction t, Identifier ident)
+    public void convertDeclaration (TypeFunction t, Identifier ident,
+        bool typedef = false)
     {
         import std.algorithm : map;
         import std.range : join;
@@ -38,12 +39,23 @@ struct Converter
                 .join(", ");
         }
 
-        this.output.declarations ~= format(
-            "%s %s(%s);",
+        auto code = format(
+            "%s%s %s(%s);",
+            typedef ? "typedef " : "",
             convert(t.next),
             ident.toString(),
             params
         );
+
+        if (typedef)
+        {
+            this.output.fptr_typedef_declarations ~= code;
+            this.output.fptr_typedefs[cast(void*) t] = ident.toString().idup;
+        }
+        else
+        {
+            this.output.declarations ~= code;
+        }
     }
 
     public void convertDeclaration (TypeStruct t)
@@ -257,6 +269,7 @@ struct Converter
         string[void*] enums;
         string[void*] structs;
         string[void*] fptr_typedefs;
+        string[] fptr_typedef_declarations;
         string[] declarations;
     }
 
