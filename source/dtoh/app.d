@@ -27,6 +27,7 @@ import dtoh.converter;
 private extern (C++) class CDeclVisitor : DeclarationVisitor
 {
     import dmd.func : FuncDeclaration;
+    import dmd.declaration : VarDeclaration;
     import dmd.dstruct : StructDeclaration;
 
     alias visit = DeclarationVisitor.visit;
@@ -39,9 +40,26 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
     override void visit(FuncDeclaration d)
     {
         import dmd.globals : LINK;
+        import dmd.mtype : TypeFunction;
 
         if (d.linkage == LINK.c)
+        {
+            this.converter.convertDeclaration(
+                cast(TypeFunction) d.type, d.ident);
+        }
+    }
+
+    override void visit(VarDeclaration d)
+    {
+        import dmd.globals : LINK;
+        import std.exception : enforce;
+        import dmd.declaration : STC;
+
+        if (d.linkage == LINK.c)
+        {
+            enforce(d.storage_class & STC.gshared);
             this.converter.convertDeclaration(d.type, d.ident);
+        }
     }
 
     private Converter converter;

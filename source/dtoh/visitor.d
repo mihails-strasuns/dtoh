@@ -75,14 +75,6 @@ public extern (C++) class DeclarationVisitor : Visitor
 
     override void visit(AggregateDeclaration d)
     {
-        if (d.members)
-        {
-            for (size_t i = 0; i < d.members.dim; i++)
-            {
-                Dsymbol s = (*d.members)[i];
-                s.accept(this);
-            }
-        }
     }
 
     override void visit(TemplateDeclaration d)
@@ -96,27 +88,6 @@ public extern (C++) class DeclarationVisitor : Visitor
 
     override void visit(EnumDeclaration d)
     {
-        if (d.isAnonymous())
-        {
-            if (d.members)
-            {
-                for (size_t i = 0; i < d.members.dim; i++)
-                {
-                    Dsymbol s = (*d.members)[i];
-                    s.accept(this);
-                }
-            }
-            return;
-        }
- 
-        if (d.members)
-        {
-            for (size_t i = 0; i < d.members.dim; i++)
-            {
-                Dsymbol s = (*d.members)[i];
-                s.accept(this);
-            }
-        }
     }
 
     override void visit(EnumMember s)

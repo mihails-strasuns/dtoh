@@ -16,33 +16,14 @@ struct Converter
 {
     public void convertDeclaration (Type t, Identifier ident)
     {
-        if (auto tb = t.isTypeBasic() || t.ty == ENUMTY.Tpointer)
-        {
-            import std.format : format;
+        import std.format : format;
 
-            // global variable
-            this.output.declarations ~=
-                format("%s %s;", this.convert(t), ident.toString());
-            return;
-        }
-
-        switch (t.ty) with (ENUMTY)
-        {
-            case Tfunction:
-                return this.convertDeclaration(cast(TypeFunction) t, ident);
-            case Tstruct:
-                assert(ident is null);
-                return this.convertDeclaration(cast(TypeStruct) t);
-            case Tenum:
-                assert(ident is null);
-                return this.convertDeclaration(cast(TypeEnum) t);
-
-            default:
-                throw new NotSupported(t);
-        }
+        // global variable
+        this.output.declarations ~=
+            format("%s %s;", this.convert(t), ident.toString());
     }
 
-    private void convertDeclaration (TypeFunction t, Identifier ident)
+    public void convertDeclaration (TypeFunction t, Identifier ident)
     {
         import std.algorithm : map;
         import std.range : join;
@@ -66,7 +47,7 @@ struct Converter
         );
     }
 
-    private void convertDeclaration (TypeStruct t)
+    public void convertDeclaration (TypeStruct t)
     {
         auto pt = cast(void*) t;
         if (pt in this.output.structs)
@@ -110,7 +91,7 @@ struct Converter
         );
     }
 
-    private void convertDeclaration (TypeEnum t)
+    public void convertDeclaration (TypeEnum t)
     {
         auto pt = cast(void*) t;
         if (pt in this.output.enums)

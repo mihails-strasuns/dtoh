@@ -2,15 +2,20 @@ module sample;
 
 void foo_ignored () { };
 
-extern(C):
+extern(C) {
+    void foo ( ) { }
 
-void foo ( ) { }
+    int bar ( ) { return 0; }
 
-int bar ( ) { return 0; }
+    struct S
+    {
+        double d;
+    }
 
-struct S
-{
-    double d;
+    mixin("S foo_generated ( size_t x );");
 }
 
-mixin("S foo_generated ( size_t x );");
+alias Seq(T...) = T;
+
+static foreach (int i, T; Seq!(S, int))
+    mixin("extern(C) __gshared " ~ T.stringof ~ " global" ~ i.stringof ~ ";");
