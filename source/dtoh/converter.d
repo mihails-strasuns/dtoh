@@ -105,13 +105,16 @@ struct Converter
 
         string formatEnumMember (Dsymbol sym)
         {
+            import std.string;
+
             auto member = sym.isEnumMember();
             enforce(member !is null);
 
             return format(
-                "%s = %s",
+                "    %s_%s = %s",
+                t.sym.ident.toString(),
                 member.ident.toString(),
-                member.value.toChars()
+                fromStringz(member.origValue.toChars())
             );
         }
 
