@@ -34,8 +34,7 @@ struct Converter
         if (t.parameters !is null)
         {
             params = (*t.parameters)[]
-                .map!(param => format(
-                    "%s %s", convert(param.type), param.ident.toString()))
+                .map!(param => convert(param.type))
                 .join(", ");
         }
 
@@ -319,7 +318,7 @@ unittest
 
     Converter x;
     x.convertDeclaration(foo, new Identifier("foo"));
-    assert(x.output.declarations == [ "void foo(int16_t param1, float* param2);" ]);
+    assert(x.output.declarations == [ "void foo(int16_t, float*);" ]);
 }
 
 unittest
