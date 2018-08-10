@@ -6,10 +6,9 @@ stages:
 unittest:
   stage: test
   script:
-    - ls -lah
     - dub test
 
-sample_run:
+samples:
   stage: test
   script:
-    - dub run -- samples/generic1.d
+    - ci/test-samples.sh

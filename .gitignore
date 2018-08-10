@@ -1,3 +1,4 @@
 /.dub
 /dtoh
 /*-test-library
+/samples/*.generated
