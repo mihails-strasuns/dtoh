@@ -39,22 +39,24 @@ struct Converter
                 .join(", ");
         }
 
-        auto code = format(
-            "%s%s %s(%s);",
-            typedef ? "typedef " : "",
-            convert(t.next),
-            ident.toString(),
-            params
-        );
-
         if (typedef)
         {
-            this.output.fptr_typedef_declarations ~= code;
+            this.output.fptr_typedef_declarations ~= format(
+                "typedef %s (*%s)(%s);",
+                convert(t.next),
+                ident.toString(),
+                params
+            );
             this.output.fptr_typedefs[cast(void*) t] = ident.toString().idup;
         }
         else
         {
-            this.output.declarations ~= code;
+            this.output.declarations ~= format(
+                "%s %s(%s);",
+                convert(t.next),
+                ident.toString(),
+                params
+            );
         }
     }
 
@@ -210,7 +212,10 @@ struct Converter
 
     private string convert (TypePointer t)
     {
-        return convert(t.next) ~ "*";
+        if (t.next.ty == ENUMTY.Tfunction)
+            return convert(t.next);
+        else
+            return convert(t.next) ~ "*";
     }
 
     private string convert (TypeFunction t)
@@ -218,6 +223,10 @@ struct Converter
         import std.algorithm : map;
         import std.range : join;
         import std.format : format;
+
+        auto exists_typedef = ((cast(void*) t) in this.output.fptr_typedefs);
+        if (exists_typedef ! is null)
+            return *exists_typedef;
 
         string ret = convert(t.next);
         string params;
