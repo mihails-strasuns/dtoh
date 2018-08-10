@@ -3,4 +3,4 @@ description ""
 authors "Mihails Strasuns"
 license "BSL-1.0"
 
-dependency "dmd:frontend" version="~master"
+dependency "dmd:frontend" path="./dmd"
