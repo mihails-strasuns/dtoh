@@ -1,7 +1,23 @@
 module dtoh.app;
 
-void main ( string[] args )
+int main ( string[] args )
 {    
+    import std.getopt;
+
+    string output_file_path;
+
+    auto info = getopt(
+        args,
+        "output|o", &output_file_path,
+    );
+
+    if (args.length != 2 || info.helpWanted)
+    {
+        import std.stdio;
+        writeln("USAGE: dtoh -o <output path> <D module path>");
+        return 1;
+    }
+
     import dmd.globals : global;
     import dmd.frontend;
 
@@ -16,8 +32,20 @@ void main ( string[] args )
     auto visitor = new CDeclVisitor;
     mod.accept(visitor);
 
-    import std.stdio;
-    writeln(visitor.render());
+    auto header = visitor.render();
+
+    if (output_file_path.length)
+    {
+        import std.file;
+        write(output_file_path, header);
+    }
+    else
+    {
+        import std.stdio;
+        writeln(header);
+    }
+    
+    return 0;
 }
 
 import dtoh.visitor;
