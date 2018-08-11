@@ -1,0 +1,33 @@
+#include <stdint.h>
+
+// Used enum definitions:
+
+enum E
+{
+    E_A = 0,
+    E_B = 1
+};
+
+// Struct forward declaration to resolve cycles:
+
+struct S;
+
+// Function pointer types:
+
+typedef void (*foo_t)();
+
+// Used struct definitions:
+
+struct S
+{
+    double d;
+};
+
+// Variable and function declarations:
+
+void foo();
+int32_t bar();
+struct S foo_generated(uint32_t);
+struct S global0;
+int32_t global1;
+float baz(enum E, foo_t);

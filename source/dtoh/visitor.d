@@ -1,29 +1,15 @@
-module app;
-
-import dmd.frontend;
-
-void main ( string[] args )
-{    
-    import dmd.globals : global;
-
-    initDMD();
-    auto ipaths = findImportPaths();
-    foreach (ipath; ipaths)
-        addImport(ipath);
-
-    auto mod = parseModule(args[1]);
-    mod.fullSemantic();
-
-    auto visitor = new Generator;
-    mod.accept(visitor);
-}
+/**
+    Copied from `dmd.hdrgen` and simplified a lot to only care about
+    top-level module declarations and descending into templates. Recursive
+    processing of aggregates is not necessary because only top-level `extern(C)`
+    declarations matter for C binding generation.
+ */
+module dtoh.visitor;
 
 import dmd.visitor;
-import dmd.astcodegen;
-import dmd.statement;
 
 ///
-private extern (C++) final class Generator : Visitor
+public extern (C++) class DeclarationVisitor : Visitor
 {
     import dmd.dmodule;
     import dmd.dsymbol;
@@ -35,8 +21,6 @@ private extern (C++) final class Generator : Visitor
     import dmd.dtemplate;
     import dmd.denum;
     import dmd.arraytypes;
-
-public:  
 
     alias visit = Visitor.visit;
 
@@ -97,25 +81,6 @@ public:
 
     override void visit(AggregateDeclaration d)
     {
-        if (d.members)
-        {
-            for (size_t i = 0; i < d.members.dim; i++)
-            {
-                Dsymbol s = (*d.members)[i];
-                s.accept(this);
-            }
-        }
-    }
-
-    override void visit(FuncDeclaration d)
-    {
-        import dmd.globals : LINK;
-        
-        if (d.linkage != LINK.c)
-            return;
-
-        import std.stdio;
-        writeln(parse(d.toChars()));
     }
 
     override void visit(TemplateDeclaration d)
@@ -129,27 +94,6 @@ public:
 
     override void visit(EnumDeclaration d)
     {
-        if (d.isAnonymous())
-        {
-            if (d.members)
-            {
-                for (size_t i = 0; i < d.members.dim; i++)
-                {
-                    Dsymbol s = (*d.members)[i];
-                    s.accept(this);
-                }
-            }
-            return;
-        }
- 
-        if (d.members)
-        {
-            for (size_t i = 0; i < d.members.dim; i++)
-            {
-                Dsymbol s = (*d.members)[i];
-                s.accept(this);
-            }
-        }
     }
 
     override void visit(EnumMember s)
@@ -163,11 +107,4 @@ public:
     override void visit(TemplateMixin d)
     {
     }
-}
-
-private string parse ( in char* s )
-{
-    import core.stdc.string : strlen;
-    auto len = strlen(s);
-    return s[0 .. len].idup;
 }

@@ -1,6 +1,6 @@
 name "dtoh"
-description ""
+description "Tool to convert D modules to C headers"
 authors "Mihails Strasuns"
 license "BSL-1.0"
 
-dependency "dmd:frontend" version="~master"
+dependency "dmd:frontend" path="./dmd"

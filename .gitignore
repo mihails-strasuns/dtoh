@@ -1,2 +1,5 @@
-.dub
-dtoh
+/.dub
+/dtoh
+/*-test-library
+/samples/*.generated
+/*.s
