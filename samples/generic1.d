@@ -15,9 +15,9 @@ extern(C) {
     mixin("S foo_generated ( size_t x );");
 }
 
-alias Seq(T...) = T;
+import std.meta : AliasSeq;
 
-static foreach (int i, T; Seq!(S, int))
+static foreach (int i, T; AliasSeq!(S, int))
     mixin("extern(C) __gshared " ~ T.stringof ~ " global" ~ i.stringof ~ ";");
 
 
