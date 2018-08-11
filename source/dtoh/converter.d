@@ -130,7 +130,7 @@ struct Converter
         {
             fields = (*t.sym.members)[]
                 .map!formatEnumMember
-                .join("\n");
+                .join(",\n");
 
             if (fields.length)
                 fields ~= "\n";
@@ -252,7 +252,7 @@ struct Converter
     private string convert (TypeEnum t)
     {
         this.convertDeclaration(t);
-        return t.sym.ident.toString().idup;
+        return "enum " ~ t.sym.ident.toString().idup;
     }
 
     public string render ( )
@@ -278,7 +278,7 @@ struct Converter
             [ "// Variable and function declarations:" ],
             this.output.declarations
         ).map!(x => x.join("\n"))
-         .join("\n\n");
+         .join("\n\n") ~ "\n";
     }
 
     private struct Output

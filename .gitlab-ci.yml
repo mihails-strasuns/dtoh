@@ -15,3 +15,8 @@ samples:
   stage: test
   script:
     - ci/test-samples.sh
+
+expected-compiles:
+  stage: test
+  script:
+    - ci/test-expected.sh

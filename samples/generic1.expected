@@ -4,7 +4,7 @@
 
 enum E
 {
-    E_A = 0
+    E_A = 0,
     E_B = 1
 };
 
@@ -30,4 +30,4 @@ int32_t bar();
 struct S foo_generated(uint32_t);
 struct S global0;
 int32_t global1;
-float baz(E, foo_t);
+float baz(enum E, foo_t);
