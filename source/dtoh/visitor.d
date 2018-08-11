@@ -1,3 +1,9 @@
+/**
+    Copied from `dmd.hdrgen` and simplified a lot to only care about
+    top-level module declarations and descending into templates. Recursive
+    processing of aggregates is not necessary because only top-level `extern(C)`
+    declarations matter for C binding generation.
+ */
 module dtoh.visitor;
 
 import dmd.visitor;

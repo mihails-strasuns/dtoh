@@ -1,3 +1,18 @@
+/**
+    Core part of dtoh - recursive converter for types and declarations
+    to their C equivalent.
+
+    `convertDeclaration` family of methods is used to convert actual
+    top-level symbols like function or struct declarations. To ensure
+    correct order of declarations and no duplicates different kinds of
+    generated output are stored separately in the `Output` sub-struct
+    and only merged together when `render` is called.
+
+    `convert` family of methods is used to correctly represent types
+    used as part of declarations. If it ever encounters struct/enum
+    type, it adds it to the mapping of struct/enum declarations to
+    be converted.
+ */
 module dtoh.converter;
 
 import dmd.mtype;
@@ -10,6 +25,7 @@ import dmd.expression;
 
 import dtoh.exceptions;
 
+/// ditto
 struct Converter
 {
     public void convertDeclaration (Type t, Identifier ident)
@@ -283,10 +299,18 @@ struct Converter
 
     private struct Output
     {
+        /// Mapping of TypeEnum addresses to matching C declarations
         string[void*] enums;
+        /// Mapping of TypeStruct addresses to matching C declarations
         string[void*] structs;
+        /// Mapping of TypeFunction addresses to alias names, will be turned
+        /// into C typedefs. NB: it doesn't seem possible to distinguish
+        /// between two different aliases to the same type in DMD frontend
+        /// so dtoh will pick the first one declared for all use cases.
         string[void*] fptr_typedefs;
+        /// Declarations for function pointer typedefs
         string[] fptr_typedef_declarations;
+        /// Declarations for functions and global variables
         string[] declarations;
     }
 
