@@ -3,3 +3,4 @@
 /*-test-library
 /samples/*.generated
 /*.s
+/cov
