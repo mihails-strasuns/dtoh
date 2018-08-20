@@ -15,6 +15,7 @@ samples:
   stage: test
   script:
     - ci/test-samples.sh
+  coverage: '/is \d+\.\d+% covered/'
 
 expected-compiles:
   stage: test

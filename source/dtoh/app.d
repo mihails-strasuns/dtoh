@@ -5,6 +5,8 @@
  */
 module dtoh.app;
 
+extern(C) __gshared bool rt_envvars_enabled = true;
+
 ///
 int main ( string[] args )
 {
