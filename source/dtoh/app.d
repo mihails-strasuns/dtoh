@@ -7,15 +7,18 @@ module dtoh.app;
 
 ///
 int main ( string[] args )
-{   
+{
     // CLI interface is intentionally simplistic for now
 
     import std.getopt;
 
     string output_file_path;
+    string[] import_paths;
+
     auto info = getopt(
         args,
         "output|o", &output_file_path,
+        "impdir|I", &import_paths,
     );
 
     if (args.length != 2 || info.helpWanted)
@@ -33,10 +36,11 @@ int main ( string[] args )
 
     import dmd.globals : global;
     import dmd.frontend;
+    import std.range : array;
 
     initDMD();
-    auto ipaths = findImportPaths();
-    foreach (ipath; ipaths)
+    import_paths = findImportPaths().array() ~ import_paths;
+    foreach (ipath; import_paths)
         addImport(ipath);
 
     auto mod = parseModule(args[1]);
@@ -140,7 +144,7 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
         }
 
         if (auto tf = isFunctionPointer(d.getType()))
-        {  
+        {
             if (tf.linkage == LINK.c)
             {
                 this.converter.convertDeclaration(tf, d.ident, true);

@@ -1,0 +1,24 @@
+#include <stdint.h>
+
+// Used enum definitions:
+
+
+
+// Struct forward declaration to resolve cycles:
+
+struct S;
+
+// Function pointer types:
+
+
+
+// Used struct definitions:
+
+struct S
+{
+    int32_t x;
+};
+
+// Variable and function declarations:
+
+struct S foo();
