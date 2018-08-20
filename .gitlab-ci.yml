@@ -16,6 +16,10 @@ samples:
   script:
     - ci/test-samples.sh
   coverage: '/is \d+\.\d+% covered/'
+  artifacts:
+    paths:
+      - cov/source-*.lst
+    expire_in: 1 week
 
 expected-compiles:
   stage: test
