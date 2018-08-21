@@ -4,15 +4,29 @@ module dtoh.exceptions;
 public abstract class ConversionException : Exception
 {
     import dmd.mtype : Type;
+    import dmd.globals : Loc;
 
-    this (Type type, string msg, string file = __FILE__, int line = __LINE__)
+    string type;
+    string loc;
+
+    this (Type type, Loc loc, string msg,
+        string file = __FILE__, int line = __LINE__)
     {
-        import std.string : format, fromStringz;
+        import std.string : fromStringz;
 
-        super(
-            format("[%s] %s", fromStringz(type.toPrettyChars(true)), msg),
-            file,
-            line
+        this.type = fromStringz(type.toPrettyChars(true)).idup;
+        this.loc = fromStringz(loc.toChars()).idup;
+
+        super(msg, file, line);
+    }
+
+    override const(char)[] message() const
+    {
+        import std.string : format;
+
+        return format(
+            "%s [%s]\n\t%s",
+            this.loc, this.type, this.msg
         );
     }
 }
@@ -22,14 +36,18 @@ public abstract class ConversionException : Exception
 public class BadTypeKind : ConversionException
 {
     import dmd.mtype : Type;
+    import dmd.globals : Loc;
 
-    this (Type type, string file = __FILE__, int line = __LINE__)
+    this (Type type, Loc loc, string file = __FILE__, int line = __LINE__)
     {
         import std.format;
+        import std.string : fromStringz;
 
         super(
             type,
-            format("Type of kind '%s' can't be represented in C", type.kind()),
+            loc,
+            format("Type of kind '%s' can't be represented in C",
+                fromStringz(type.kind())),
             file,
             line
         );
@@ -43,13 +61,13 @@ public class BadTypeKind : ConversionException
 public class NonPOD : ConversionException
 {
     import dmd.mtype : Type;
+    import dmd.globals : Loc;
 
-    this (Type type, string file = __FILE__, int line = __LINE__)
+    this (Type type, Loc loc, string file = __FILE__, int line = __LINE__)
     {
-        import std.format;
-
         super(
             type,
+            loc,
             "Using non-POD struct as extern(C) is likely to result in hard to debug" ~
                 " differences in behaviour",
             file,
@@ -64,13 +82,13 @@ public class NonPOD : ConversionException
 public class StructFieldInit : ConversionException
 {
     import dmd.mtype : Type;
+    import dmd.globals : Loc;
 
-    this (Type type, string file = __FILE__, int line = __LINE__)
+    this (Type type, Loc loc, string file = __FILE__, int line = __LINE__)
     {
-        import std.format;
-
         super(
             type,
+            loc,
            "C does not support explicit field initializers in structs",
             file,
             line
@@ -84,13 +102,13 @@ public class StructFieldInit : ConversionException
 public class VariableTLS : ConversionException
 {
     import dmd.mtype : Type;
+    import dmd.globals : Loc;
 
-    this (Type type, string file = __FILE__, int line = __LINE__)
+    this (Type type, Loc loc, string file = __FILE__, int line = __LINE__)
     {
-        import std.format;
-
         super(
             type,
+            loc,
            "Missing __gshared on extern(C) global variable",
             file,
             line
@@ -105,13 +123,13 @@ public class VariableTLS : ConversionException
 public class UnnamedFunction : ConversionException
 {
     import dmd.mtype : Type;
+    import dmd.globals : Loc;
 
-    this (Type type, string file = __FILE__, int line = __LINE__)
+    this (Type type, Loc loc, string file = __FILE__, int line = __LINE__)
     {
-        import std.format;
-
         super(
             type,
+            loc,
             "C does not support unnamed function pointers, "
                 ~ "consider using alias or named parameter",
             file,
@@ -125,13 +143,13 @@ public class UnnamedFunction : ConversionException
 public class Oops : ConversionException
 {
     import dmd.mtype : Type;
+    import dmd.globals : Loc;
 
-    this (Type type, string file = __FILE__, int line = __LINE__)
+    this (Type type, Loc loc, string file = __FILE__, int line = __LINE__)
     {
-        import std.format;
-
         super(
             type,
+            loc,
            "Converter has encountered something that doesn't make sense",
             file,
             line

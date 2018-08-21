@@ -22,56 +22,77 @@ import dmd.globals;
 import dmd.declaration;
 import dmd.init;
 import dmd.expression;
+import dmd.arraytypes;
+import dmd.func;
 
 import dtoh.exceptions;
 
 /// ditto
 struct Converter
 {
-    public void convertDeclaration (Type t, Identifier ident)
+    public void convertDeclaration (VarDeclaration d)
     {
         import std.format : format;
 
         // global variable
-        this.output.declarations ~=
-            format("%s %s;", this.convert(t), ident.toString());
-    }
-
-    public void convertDeclaration (TypeFunction t, Identifier ident,
-        bool typedef = false)
-    {
-        import std.algorithm : map;
-        import std.range : join;
-        import std.format : format;
-
-        string params;
-
-        if (t.parameters !is null)
+        if (d.type.ty != ENUMTY.Tsarray)
         {
-            params = (*t.parameters)[]
-                .map!(param => convert(param.type, param.ident))
-                .join(", ");
-        }
-
-        if (typedef)
-        {
-            this.output.fptr_typedef_declarations ~= format(
-                "typedef %s (*%s)(%s);",
-                convert(t.next),
-                ident.toString(),
-                params
-            );
-            this.output.fptr_typedefs[cast(void*) t] = ident.toString().idup;
+            this.output.declarations ~=
+                format("%s %s;", this.convert(d.type, d.loc), d.ident.toString());
         }
         else
         {
-            this.output.declarations ~= format(
-                "%s %s(%s);",
-                convert(t.next),
-                ident.toString(),
-                params
-            );
+            this.output.declarations ~=
+                this.convert(d.type, d.loc, d.ident);
         }
+    }
+
+    private string joinParameters (Parameters* params, Loc loc)
+    {
+        import std.algorithm : map;
+        import std.range : join;
+
+        if (params !is null)
+        {
+            return (*params)[]
+                .map!(param => convert(param.type, loc, param.ident))
+                .join(", ");
+        }
+        else
+            return "";
+    }
+
+    public void convertDeclaration (FuncDeclaration d)
+    {
+        import std.format : format;
+
+        auto t = cast(TypeFunction) d.type;
+        assert(t !is null);
+
+        string params = joinParameters(t.parameters, d.loc);
+
+        this.output.declarations ~= format(
+            "%s %s(%s);",
+            convert(t.next, d.loc),
+            d.ident.toString(),
+            params
+        );
+    }
+
+    public void convertDeclaration (AliasDeclaration d, TypeFunction t)
+    {
+        import std.format : format;
+
+        string params = joinParameters(t.parameters, d.loc);
+
+        this.output.fptr_typedef_declarations ~= format(
+            "typedef %s (*%s)(%s);",
+            convert(t.next, d.loc),
+            d.ident.toString(),
+            params
+        );
+
+        this.output.fptr_typedefs[cast(void*) t] = d.ident.toString().idup;
     }
 
     public void convertDeclaration (TypeStruct t)
@@ -81,7 +102,7 @@ struct Converter
             return;
 
         if (!t.sym.isPOD())
-            throw new NonPOD(t);
+            throw new NonPOD(t, t.sym.loc);
 
         import std.algorithm : map;
         import std.range : join;
@@ -90,11 +111,11 @@ struct Converter
         string fieldToString (VarDeclaration field)
         {
             if (field._init !is null)
-                throw new StructFieldInit(t);
+                throw new StructFieldInit(t, field.loc);
 
             return format(
                 "    %s %s;",
-                convert(field.type),
+                convert(field.type, field.loc),
                 field.ident.toString()
             );
         }
@@ -132,7 +153,7 @@ struct Converter
 
             auto member = sym.isEnumMember();
             if (member is null)
-                throw new Oops(t);
+                throw new Oops(t, t.sym.loc);
 
             return format(
                 "    %s_%s = %s",
@@ -159,28 +180,30 @@ struct Converter
         );
     }
 
-    private string convert (Type t, Identifier name = null)
+    private string convert (Type t, Loc loc, Identifier name = null)
     {
         if (auto tb = t.isTypeBasic())
-            return this.convert(tb);
+            return this.convert(tb, loc);
 
         switch (t.ty) with (ENUMTY)
         {
             case Tpointer:
-                return this.convert(cast(TypePointer) t);
+                return this.convert(cast(TypePointer) t, loc, name);
             case Tfunction:
-                return this.convert(cast(TypeFunction) t, name);
+                return this.convert(cast(TypeFunction) t, loc, name);
             case Tstruct:
                 return this.convert(cast(TypeStruct) t);
             case Tenum:
                 return this.convert(cast(TypeEnum) t);
+            case Tsarray:
+                return this.convert(cast(TypeSArray) t, loc, name);
 
             default:
-                throw new BadTypeKind(t);
+                throw new BadTypeKind(t, loc);
         }
     }
 
-    private string convert (TypeBasic t)
+    private string convert (TypeBasic t, Loc loc)
     {
         switch (t.ty)
         {
@@ -213,22 +236,32 @@ struct Converter
             case Tdchar:
             case Tint128:
             case Tuns128:
-                throw new BadTypeKind(t);
+                throw new BadTypeKind(t, loc);
 
             default:
                 assert(false);
         }
     }
 
-    private string convert (TypePointer t)
+    private string convert (TypePointer t, Loc loc, Identifier name)
     {
         if (t.next.ty == ENUMTY.Tfunction)
-            return convert(t.next);
+            return convert(t.next, loc, name);
         else
-            return convert(t.next) ~ "*";
+            return convert(t.next, loc) ~ "*";
     }
 
-    private string convert (TypeFunction t, Identifier name)
+    private string convert (TypeSArray t, Loc loc, Identifier name)
+    {
+        import std.format;
+
+        assert(name !is null);
+
+        return format("%s %s[%s]", convert(t.next, loc), name.toString(),
+            t.dim.toUInteger());
+    }
+
+    private string convert (TypeFunction t, Loc loc, Identifier name)
     {
         import std.algorithm : map;
         import std.range : join;
@@ -239,17 +272,10 @@ struct Converter
             return *exists_typedef;
 
         if (name is null)
-            throw new UnnamedFunction(t);
+            throw new UnnamedFunction(t, loc);
 
-        string ret = convert(t.next);
-        string params;
-
-        if (t.parameters !is null)
-        {
-            params = (*t.parameters)[]
-                .map!(param => convert(param.type, param.ident))
-                .join(", ");
-        }
+        string ret = convert(t.next, loc);
+        string params = joinParameters(t.parameters, loc);
 
         return format(
             "%s (*%s)(%s)",
@@ -274,7 +300,7 @@ struct Converter
     public string render ( )
     {
         import std.range;
-        import std.algorithm : map;
+        import std.algorithm : map, sort;
 
         auto forward_decls = this.output.structs.keys.map!((key) {
             auto name = (cast(TypeStruct) key).sym.ident.toString().idup;
@@ -284,13 +310,13 @@ struct Converter
         return only(
             [ "#include <stdint.h>" ],
             [ "// Used enum definitions:" ],
-            this.output.enums.values,
+            this.output.enums.values.sort.array,
             [ "// Struct forward declaration to resolve cycles:" ],
             forward_decls,
             [ "// Function pointer types:" ],
-            this.output.fptr_typedef_declarations,
+            this.output.fptr_typedef_declarations.sort.array,
             [ "// Used struct definitions:" ],
-            this.output.structs.values,
+            this.output.structs.values.sort.array,
             [ "// Variable and function declarations:" ],
             this.output.declarations
         ).map!(x => x.join("\n"))
@@ -330,18 +356,24 @@ version(unittest)
 unittest
 {
     Converter x;
-    x.convertDeclaration(new TypeBasic(Tvoid), new Identifier("x"));
+    auto decl = new VarDeclaration(dummy_loc, new TypeBasic(Tvoid),
+        new Identifier("x"), null);
+    x.convertDeclaration(decl);
     assert(x.output.declarations == [ "void x;" ]);
 }
 
 unittest
 {
     Converter x;
-    x.convertDeclaration(
+    auto decl = new VarDeclaration(
+        dummy_loc,
         new TypePointer(
             new TypePointer(new TypeBasic(Tchar))),
-        new Identifier("p")
+        new Identifier("p"),
+        null
     );
+
+    x.convertDeclaration(decl);
     assert(x.output.declarations == [ "char** p;" ]);
 }
 
@@ -374,7 +406,9 @@ unittest
     );
 
     Converter x;
-    x.convertDeclaration(foo, new Identifier("foo"));
+    auto decl = new FuncDeclaration(dummy_loc, dummy_loc,
+        new Identifier("foo"), 0, foo);
+    x.convertDeclaration(decl);
     assert(x.output.declarations == [ "void foo(int16_t, float*);" ]);
 }
 

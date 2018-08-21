@@ -1,0 +1,2 @@
+samples_errors/pod.d(3) [pod.S]
+	Using non-POD struct as extern(C) is likely to result in hard to debug differences in behaviour

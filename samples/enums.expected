@@ -1,0 +1,38 @@
+#include <stdint.h>
+
+// Used enum definitions:
+
+enum A
+{
+    A_one = 42
+};
+enum B
+{
+    B_one = 1,
+    B_two = 42
+};
+enum C
+{
+    C_a = 0,
+    C_b = 1,
+    C_c = 2
+};
+
+// Struct forward declaration to resolve cycles:
+
+
+
+// Function pointer types:
+
+
+
+// Used struct definitions:
+
+
+
+// Variable and function declarations:
+
+enum B var1;
+enum A var2;
+enum B foo(enum B);
+void baz(enum C);
