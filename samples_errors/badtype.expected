@@ -1,0 +1,2 @@
+samples_errors/badtype.d(3) [badtype.C]
+	Type of kind 'class' can't be represented in C

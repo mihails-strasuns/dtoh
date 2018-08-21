@@ -41,11 +41,13 @@ public class BadTypeKind : ConversionException
     this (Type type, Loc loc, string file = __FILE__, int line = __LINE__)
     {
         import std.format;
+        import std.string : fromStringz;
 
         super(
             type,
             loc,
-            format("Type of kind '%s' can't be represented in C", type.kind()),
+            format("Type of kind '%s' can't be represented in C",
+                fromStringz(type.kind())),
             file,
             line
         );
