@@ -35,8 +35,16 @@ struct Converter
         import std.format : format;
 
         // global variable
-        this.output.declarations ~=
-            format("%s %s;", this.convert(d.type, d.loc), d.ident.toString());
+        if (d.type.ty != ENUMTY.Tsarray)
+        {
+            this.output.declarations ~=
+                format("%s %s;", this.convert(d.type, d.loc), d.ident.toString());
+        }
+        else
+        {
+            this.output.declarations ~=
+                this.convert(d.type, d.loc, d.ident);
+        }
     }
 
     private string joinParameters (Parameters* params, Loc loc)
@@ -187,6 +195,8 @@ struct Converter
                 return this.convert(cast(TypeStruct) t);
             case Tenum:
                 return this.convert(cast(TypeEnum) t);
+            case Tsarray:
+                return this.convert(cast(TypeSArray) t, loc, name);
 
             default:
                 throw new BadTypeKind(t, loc);
@@ -239,6 +249,16 @@ struct Converter
             return convert(t.next, loc);
         else
             return convert(t.next, loc) ~ "*";
+    }
+
+    private string convert (TypeSArray t, Loc loc, Identifier name)
+    {
+        import std.format;
+
+        assert(name !is null);
+
+        return format("%s %s[%s]", convert(t.next, loc), name.toString(),
+            t.dim.toUInteger());
     }
 
     private string convert (TypeFunction t, Loc loc, Identifier name)
