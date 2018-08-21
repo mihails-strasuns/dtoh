@@ -1,0 +1,2 @@
+samples_errors/unnamed.d(2) [extern (C) void()]
+	C does not support unnamed function pointers, consider using alias or named parameter

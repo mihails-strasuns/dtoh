@@ -1,0 +1,2 @@
+samples_errors/global.d(4) [int]
+	Missing __gshared on extern(C) global variable

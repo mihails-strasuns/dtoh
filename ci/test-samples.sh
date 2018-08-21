@@ -1,14 +1,27 @@
 #!/bin/sh
+set -e
+
+dub build -b cov -q
 
 export DRT_COVOPT="merge:1 dstpath:./cov"
-mkdir -p cov
+rm -rf cov && mkdir cov
 
 for sample in samples/*.d
 do
     echo "Testing '$sample'"
     path="samples/$(basename "$sample" .d)"
-    dub run -b cov -q -- -I./samples/ -o "$path.generated" $sample
+    ./dtoh -I./samples/ -o "$path.generated" $sample
     diff "$path.generated" "$path.expected"
+done
+
+for sample in samples_errors/*.d
+do
+    echo "Testing '$sample' (error messages)"
+    path="samples_errors/$(basename "$sample" .d)"
+    set +e
+    ./dtoh $sample 2>"$path.stderr"
+    set -e
+    diff "$path.stderr" "$path.expected"
 done
 
 grep -h "covered" ./cov/source-*
