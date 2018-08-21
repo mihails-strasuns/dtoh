@@ -24,4 +24,5 @@ do
     diff "$path.stderr" "$path.expected"
 done
 
+echo "Done.\n"
 grep -h "covered" ./cov/source-*
