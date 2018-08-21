@@ -1,0 +1,2 @@
+samples_errors/initializer.d(5) [initializer.S]
+	C does not support explicit field initializers in structs
