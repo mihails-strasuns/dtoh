@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -x
+set -xe
 
 for sample in samples/*.expected
 do
