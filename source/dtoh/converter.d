@@ -188,7 +188,7 @@ struct Converter
         switch (t.ty) with (ENUMTY)
         {
             case Tpointer:
-                return this.convert(cast(TypePointer) t, loc);
+                return this.convert(cast(TypePointer) t, loc, name);
             case Tfunction:
                 return this.convert(cast(TypeFunction) t, loc, name);
             case Tstruct:
@@ -243,10 +243,10 @@ struct Converter
         }
     }
 
-    private string convert (TypePointer t, Loc loc)
+    private string convert (TypePointer t, Loc loc, Identifier name)
     {
         if (t.next.ty == ENUMTY.Tfunction)
-            return convert(t.next, loc);
+            return convert(t.next, loc, name);
         else
             return convert(t.next, loc) ~ "*";
     }
