@@ -48,8 +48,19 @@ int main ( string[] args )
     auto mod = parseModule(args[1]);
     mod.fullSemantic();
 
-    auto visitor = new CDeclVisitor;
-    mod.accept(visitor);
+    CDeclVisitor visitor;
+
+    try
+    {
+        visitor = new CDeclVisitor;
+        mod.accept(visitor);
+    }
+    catch (ConversionException e)
+    {
+        import std.stdio;
+        stderr.writeln(e.message());
+        return 1;
+    }
 
     auto header = visitor.render();
 
@@ -104,10 +115,7 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
         import dmd.mtype : TypeFunction;
 
         if (d.linkage == LINK.c)
-        {
-            this.converter.convertDeclaration(
-                cast(TypeFunction) d.type, d.ident);
-        }
+            this.converter.convertDeclaration(d);
     }
 
     /// e.g. `extern(C) __gshared int x`
@@ -120,8 +128,8 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
         if (d.linkage == LINK.c)
         {
             if (!(d.storage_class & STC.gshared))
-                throw new VariableTLS(d.type);
-            this.converter.convertDeclaration(d.type, d.ident);
+                throw new VariableTLS(d.type, d.loc);
+            this.converter.convertDeclaration(d);
         }
     }
 
@@ -148,9 +156,7 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
         if (auto tf = isFunctionPointer(d.getType()))
         {
             if (tf.linkage == LINK.c)
-            {
-                this.converter.convertDeclaration(tf, d.ident, true);
-            }
+                this.converter.convertDeclaration(d, tf);
         }
     }
 
