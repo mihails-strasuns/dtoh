@@ -141,8 +141,6 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
 
         TypeFunction isFunctionPointer (Type t)
         {
-            if (t.ty == ENUMTY.Tfunction)
-                return t.toTypeFunction();
             if (t.ty == ENUMTY.Tpointer)
             {
                 auto tp = cast(TypePointer) t;
