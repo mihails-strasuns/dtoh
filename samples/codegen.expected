@@ -1,0 +1,23 @@
+#include <stdint.h>
+
+// Used enum definitions:
+
+
+
+// Struct forward declaration to resolve cycles:
+
+
+
+// Function pointer types:
+
+typedef void (*foo_t)();
+
+// Used struct definitions:
+
+
+
+// Variable and function declarations:
+
+double global0;
+int32_t global1;
+foo_t callback;

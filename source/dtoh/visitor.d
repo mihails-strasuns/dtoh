@@ -33,7 +33,7 @@ public extern (C++) class DeclarationVisitor : Visitor
         for (size_t i = 0; i < s.members.dim; i++)
         {
             (*s.members)[i].accept(this);
-        }        
+        }
     }
 
     override void visit(Import s)
@@ -55,15 +55,14 @@ public extern (C++) class DeclarationVisitor : Visitor
 
     override void visit(ConditionalDeclaration d)
     {
-        if (d.condition.inc)
+        if (d.condition.inc == 1)
         {
-            visit(cast(AttribDeclaration)d);
-        }
-        Dsymbols* ds = d.decl ? d.decl : d.elsedecl;
-        for (size_t i = 0; i < ds.dim; i++)
-        {
-            Dsymbol s = (*ds)[i];
-            s.accept(this);
+            Dsymbols* ds = d.decl ? d.decl : d.elsedecl;
+            for (size_t i = 0; i < ds.dim; i++)
+            {
+                Dsymbol s = (*ds)[i];
+                s.accept(this);
+            }
         }
     }
 
@@ -106,5 +105,10 @@ public extern (C++) class DeclarationVisitor : Visitor
 
     override void visit(TemplateMixin d)
     {
+        for (size_t i = 0; i < d.members.dim; i++)
+        {
+            Dsymbol s = (*d.members)[i];
+            s.accept(this);
+        }
     }
 }
