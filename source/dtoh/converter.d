@@ -300,7 +300,7 @@ struct Converter
     public string render ( )
     {
         import std.range;
-        import std.algorithm : map;
+        import std.algorithm : map, sort;
 
         auto forward_decls = this.output.structs.keys.map!((key) {
             auto name = (cast(TypeStruct) key).sym.ident.toString().idup;
@@ -310,13 +310,13 @@ struct Converter
         return only(
             [ "#include <stdint.h>" ],
             [ "// Used enum definitions:" ],
-            this.output.enums.values,
+            this.output.enums.values.sort.array,
             [ "// Struct forward declaration to resolve cycles:" ],
             forward_decls,
             [ "// Function pointer types:" ],
-            this.output.fptr_typedef_declarations,
+            this.output.fptr_typedef_declarations.sort.array,
             [ "// Used struct definitions:" ],
-            this.output.structs.values,
+            this.output.structs.values.sort.array,
             [ "// Variable and function declarations:" ],
             this.output.declarations
         ).map!(x => x.join("\n"))
