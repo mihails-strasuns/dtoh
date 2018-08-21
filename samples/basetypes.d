@@ -18,14 +18,10 @@ extern(C) __gshared {
     double c2;
     real c3;
 
-    ifloat d1;
-    idouble d2;
-    ireal d3;
+    cfloat d1;
+    cdouble d2;
+    creal d3;
 
-    cfloat e1;
-    cdouble e2;
-    creal e3;
-
-    char f1;
-    bool f2;
+    char e1;
+    bool e2;
 }

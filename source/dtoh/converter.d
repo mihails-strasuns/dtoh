@@ -43,7 +43,7 @@ struct Converter
         else
         {
             this.output.declarations ~=
-                this.convert(d.type, d.loc, d.ident);
+                this.convert(d.type, d.loc, d.ident) ~ ";";
         }
     }
 
@@ -208,7 +208,7 @@ struct Converter
         switch (t.ty)
         {
             case Tvoid: return "void";
-            case Tbool: return "bool";
+            case Tbool: return "_Bool";
             case Tchar: return "char";
 
             case Tint8:  return "int8_t";
@@ -224,13 +224,15 @@ struct Converter
             case Tfloat64: return "double";
             case Tfloat80: return "long double";
 
-            case Timaginary32: return "_Imaginary float";
-            case Timaginary64: return "_Imaginary double";
-            case Timaginary80: return "_Imaginary long double";
+            case Timaginary32:
+            case Timaginary64:
+            case Timaginary80:
+                // not all C compilers support it, optional per C99
+                throw new BadTypeKind(t, loc);
 
-            case Tcomplex32: return "_Complex float";
-            case Tcomplex64: return "_Complex double";
-            case Tcomplex80: return "_Complex long double";
+            case Tcomplex32: return "float _Complex";
+            case Tcomplex64: return "double _Complex";
+            case Tcomplex80: return "long double _Complex";
 
             case Twchar:
             case Tdchar:
