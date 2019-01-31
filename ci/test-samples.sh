@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-dub build -b cov -q
+$bindir/dub build -b cov -q
 
 export DRT_COVOPT="merge:1 dstpath:./cov"
 rm -rf cov && mkdir cov
