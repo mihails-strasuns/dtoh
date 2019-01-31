@@ -46,14 +46,14 @@ int main ( string[] args )
         addImport(ipath);
 
     auto mod = parseModule(args[1]);
-    mod.fullSemantic();
+    mod.module_.fullSemantic();
 
     CDeclVisitor visitor;
 
     try
     {
         visitor = new CDeclVisitor;
-        mod.accept(visitor);
+        mod.module_.accept(visitor);
     }
     catch (ConversionException e)
     {
