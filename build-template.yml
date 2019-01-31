@@ -1,18 +1,26 @@
 steps:
-  - powershell: wget -O $(archive) $(url)
-    displayName: Download compiler package (Windows)
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
 
-  - bash: wget -O $(archive) $(url)
-    displayName: Download compiler package (Linux)
+  - bash: wget -O D/bin/dc $(url)
+    displayName: Download DC (Linux)
     condition: eq(variables['Agent.OS'], 'Linux')
 
+  - bash: chmod +x D/bin/dc
+    condition: eq(variables['Agent.OS'], 'Linux')
+
+  - powershell: wget -O D\bin\dc.exe $(url)
+    displayName: Download DC (Windows)
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
+
+  - powershell: wget -O 7z.7z https://www.7-zip.org/a/7z1805-extra.7z
+    displayName: Download 7-zip portable package
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
+
   - task: ExtractFiles@1
+    displayName: Extract 7-zip binary
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
     inputs:
-      archiveFilePatterns: $(archive)
-      destinationFolder: ldc
+      archiveFilePatterns: 7z.7z
+      destinationFolder: '7z'
 
   - bash: ./ci/test-samples.sh
-    env:
-      bindir: $(bindir)
     displayName: Check sample conversion

@@ -1,7 +1,10 @@
 #!/bin/sh
 set -e
 
-$bindir/dub build -b cov -q
+export PATH="$PATH:./D/bin"
+dc use dmd-2.084.0
+
+dub build -b cov -q
 
 export DRT_COVOPT="merge:1 dstpath:./cov"
 rm -rf cov && mkdir cov

@@ -39,9 +39,10 @@ int main ( string[] args )
     import dmd.globals : global;
     import dmd.frontend;
     import std.range : array;
+    import std.exception : ifThrown;
 
     initDMD();
-    import_paths = findImportPaths().array() ~ import_paths;
+    import_paths = findImportPaths().array().ifThrown(null) ~ import_paths;
     foreach (ipath; import_paths)
         addImport(ipath);
 

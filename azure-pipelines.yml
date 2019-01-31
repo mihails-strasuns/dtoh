@@ -8,9 +8,7 @@ jobs:
 
   - job: Linux
     variables:
-      url: https://github.com/ldc-developers/ldc/releases/download/v1.13.0/ldc2-1.13.0-linux-x86_64.tar.xz
-      bindir: ldc/ldc2-1.13.0-linux-x86_64/bin
-      archive: ldc.tar.xz
+      url: https://github.com/mihails-strasuns/dc/releases/download/v0.1.0/dc
     pool:
       vmImage: 'ubuntu 16.04'
     steps:
@@ -18,9 +16,7 @@ jobs:
 
   - job: Windows
     variables:
-      url: https://github.com/ldc-developers/ldc/releases/download/v1.13.0/ldc2-1.13.0-windows-multilib.7z
-      bindir: ldc/ldc2-1.13.0-windows-multilib/bin
-      archive: ldc.7z
+      url: https://github.com/mihails-strasuns/dc/releases/download/v0.1.0/dc.exe
     pool:
       vmImage: 'vs2017-win2016'
     steps:
