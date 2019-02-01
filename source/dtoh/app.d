@@ -104,7 +104,7 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
     alias visit = DeclarationVisitor.visit;
 
     /// Returns: final C header as a single string
-    string render ( )
+    extern(D) string render ( )
     {
         return this.converter.render();
     }
