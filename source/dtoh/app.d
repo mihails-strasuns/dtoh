@@ -39,21 +39,22 @@ int main ( string[] args )
     import dmd.globals : global;
     import dmd.frontend;
     import std.range : array;
+    import std.exception : ifThrown;
 
     initDMD();
-    import_paths = findImportPaths().array() ~ import_paths;
+    import_paths = findImportPaths().array().ifThrown(null) ~ import_paths;
     foreach (ipath; import_paths)
         addImport(ipath);
 
     auto mod = parseModule(args[1]);
-    mod.fullSemantic();
+    mod.module_.fullSemantic();
 
     CDeclVisitor visitor;
 
     try
     {
         visitor = new CDeclVisitor;
-        mod.accept(visitor);
+        mod.module_.accept(visitor);
     }
     catch (ConversionException e)
     {
@@ -103,7 +104,7 @@ private extern (C++) class CDeclVisitor : DeclarationVisitor
     alias visit = DeclarationVisitor.visit;
 
     /// Returns: final C header as a single string
-    string render ( )
+    extern(D) string render ( )
     {
         return this.converter.render();
     }

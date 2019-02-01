@@ -69,7 +69,7 @@ struct Converter
         auto t = cast(TypeFunction) d.type;
         assert(t !is null);
 
-        string params = joinParameters(t.parameters, d.loc);
+        string params = joinParameters(t.parameterList, d.loc);
 
         this.output.declarations ~= format(
             "%s %s(%s);",
@@ -83,7 +83,7 @@ struct Converter
     {
         import std.format : format;
 
-        string params = joinParameters(t.parameters, d.loc);
+        string params = joinParameters(t.parameterList, d.loc);
 
         this.output.fptr_typedef_declarations ~= format(
             "typedef %s (*%s)(%s);",
@@ -277,7 +277,7 @@ struct Converter
             throw new UnnamedFunction(t, loc);
 
         string ret = convert(t.next, loc);
-        string params = joinParameters(t.parameters, loc);
+        string params = joinParameters(t.parameterList, loc);
 
         return format(
             "%s (*%s)(%s)",
