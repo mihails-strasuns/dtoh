@@ -24,3 +24,15 @@ steps:
 
   - bash: ./ci/test-samples.sh
     displayName: Check sample conversion
+
+  - task: PublishBuildArtifacts@1
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
+    inputs:
+      pathtoPublish: dtoh.exe
+      artifactName: dtoh
+
+  - task: PublishBuildArtifacts@1
+    condition: eq(variables['Agent.OS'], 'Linux')
+    inputs:
+      pathtoPublish: dtoh
+      artifactName: dtoh
